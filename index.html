@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lightime Central Plaza - Black Edition</title>
+    <title>Lightime Clock</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             overflow: hidden;
-            background-color: #000000; /* Black background */
+            background-color: #000000;
         }
 
         .container {
@@ -23,20 +23,19 @@
         .row {
             flex: 1;
             width: 100%;
-            /* Subtle dark border for the "black" look */
-            border: 1px solid #222; 
+            border: 1px solid #111; /* Very subtle border */
             box-sizing: border-box;
             transition: background-color 1s ease-in-out;
         }
 
-        /* The Blinking Animation: 5 times in 5 seconds means 1 sec per blink */
-        @keyframes blink-alert {
+        /* Blinking Animation */
+        @keyframes sync-blink {
             0%, 49% { opacity: 1; }
-            50%, 100% { opacity: 0.3; }
+            50%, 100% { opacity: 0.1; }
         }
 
-        .blinking {
-            animation: blink-alert 1s infinite;
+        .blinking-active .row {
+            animation: sync-blink 1s infinite;
         }
 
         /* Central Plaza Colors */
@@ -50,7 +49,7 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="container" id="main-container">
         <div class="row" id="row1"></div>
         <div class="row" id="row2"></div>
         <div class="row" id="row3"></div>
@@ -60,6 +59,7 @@
     <script>
         const hoursCycle = ['color-red', 'color-white', 'color-purple', 'color-yellow', 'color-pink', 'color-green'];
         const rowIds = ['row1', 'row2', 'row3', 'row4'];
+        const container = document.getElementById('main-container');
 
         function updateClock() {
             const now = new Date();
@@ -67,40 +67,34 @@
             const minute = now.getMinutes();
             const second = now.getSeconds();
 
+            // 1. Calculate Colors
             const currentHourColorClass = hoursCycle[hour % hoursCycle.length];
             const nextHourColorClass = hoursCycle[(hour + 1) % hoursCycle.length];
             const fifteenMinBlock = Math.floor(minute / 15);
 
-            // Determine if we should be blinking (5 seconds before any 15-min mark)
-            // Marks are at 15:00, 30:00, 45:00, 00:00. 
-            // So we blink if minute is 14, 29, 44, or 59 AND seconds >= 55.
-            const isTransitionTime = (minute % 15 === 14 || minute % 15 === 29 || minute % 15 === 44 || minute % 15 === 59) || (minute % 15 === 14 && second >= 55);
-            // Simpler logic: Is the next 15-min mark less than 5 seconds away?
-            const secondsUntilNextBlock = (15 * 60) - ((minute % 15) * 60 + second);
-            const shouldBlink = secondsUntilNextBlock <= 5 && secondsUntilNextBlock > 0;
-
-            // Determine which row is ABOUT to change
-            // If i == fifteenMinBlock, that is the row that will change next.
+            // 2. Apply Colors to Rows
             for (let i = 0; i < rowIds.length; i++) {
                 const row = document.getElementById(rowIds[i]);
-                
-                // Set the base color
                 if (i < fifteenMinBlock) {
                     row.className = 'row ' + nextHourColorClass;
                 } else {
                     row.className = 'row ' + currentHourColorClass;
                 }
+            }
 
-                // Add the blinking class ONLY to the row that is about to change
-                if (shouldBlink && i === fifteenMinBlock) {
-                    row.classList.add('blinking');
-                } else {
-                    row.classList.remove('blinking');
-                }
+            // 3. Sync Blink Logic
+            // The blink should trigger at minutes 14, 29, 44, and 59
+            const isLastMinuteOfBlock = (minute % 15 === 14);
+            const isBlinkZone = isLastMinuteOfBlock && second >= 55;
+
+            if (isBlinkZone) {
+                container.classList.add('blinking-active');
+            } else {
+                container.classList.remove('blinking-active');
             }
         }
 
-        // Update every 1 second to catch the "5 seconds before" mark accurately
+        // Check every second for precision
         setInterval(updateClock, 1000);
         updateClock();
     </script>
