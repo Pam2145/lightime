@@ -57,6 +57,10 @@
     </div>
 
     <script>
+        if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => console.log("Service Worker Registered for Offline Use"));
+}
         const hoursCycle = ['color-red', 'color-white', 'color-purple', 'color-yellow', 'color-pink', 'color-green'];
         const rowIds = ['row1', 'row2', 'row3', 'row4'];
         const container = document.getElementById('main-container');
