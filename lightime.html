@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightime Central Plaza Clock</title>
+    <style>
+        /* 1. Core Styles for Responsive Fit */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #fcfbf6; /* Matching the paper background color from the image */
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .row {
+            flex: 1;
+            width: 100%;
+            border: 1px solid #c7d2c3; /* Matching the subtle grid lines from the image */
+            box-sizing: border-box; /* Ensures border is inside the 100% width */
+            
+            /* Add a smooth fade-in/out transition */
+            transition: background-color 2s ease-in-out;
+        }
+
+        /* Define the core palette colors from the image (hex approximations) */
+        .color-red { background-color: #C11B17; }
+        .color-white { background-color: #FFFFFF; }
+        .color-purple { background-color: #6C3483; }
+        .color-yellow { background-color: #D4AC0D; }
+        .color-pink { background-color: #E6A2C5; }
+        .color-green { background-color: #1D8348; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row" id="row1"></div>
+        <div class="row" id="row2"></div>
+        <div class="row" id="row3"></div>
+        <div class="row" id="row4"></div>
+    </div>
+
+    <script>
+        // 2. Logic to follow the Central Plaza rulebook
+
+        // This is the 6-hour repeatable cycle of colors
+        const hoursCycle = [
+            'color-red',    // Hour 1
+            'color-white',  // Hour 2
+            'color-purple', // Hour 3
+            'color-yellow', // Hour 4
+            'color-pink',   // Hour 5
+            'color-green'   // Hour 6
+        ];
+
+        const rowIds = ['row1', 'row2', 'row3', 'row4'];
+
+        function updateClock() {
+            const now = new Date();
+            const hour = now.getHours(); // 0-23
+            const minute = now.getMinutes(); // 0-59
+
+            // Step 1: Find the color of the CURRENT HOUR.
+            // Using modulo (%) lets the 6-hour cycle repeat properly.
+            const currentHourColorClass = hoursCycle[hour % hoursCycle.length];
+
+            // Step 2: Find the color of the NEXT HOUR.
+            const nextHourColorClass = hoursCycle[(hour + 1) % hoursCycle.length];
+
+            // Step 3: Determine which 15-minute block we are in (0-3).
+            // 0-14 min = Block 0 | 15-29 min = Block 1 | 30-44 min = Block 2 | 45-59 min = Block 3
+            const fifteenMinBlock = Math.floor(minute / 15);
+
+            // Step 4: Apply colors based on the blocks.
+            // This is the elegant logic that controls the bars one-by-one.
+            for (let i = 0; i < rowIds.length; i++) {
+                const row = document.getElementById(rowIds[i]);
+                
+                // If a row's index is LESS than the 15-min block, 
+                // it's a bar that has *already* changed to the next hour's color.
+                if (i < fifteenMinBlock) {
+                    row.className = 'row ' + nextHourColorClass;
+                } else {
+                    // Otherwise, it's a bar that is still the current hour's color.
+                    row.className = 'row ' + currentHourColorClass;
+                }
+            }
+        }
+
+        // Run immediately when page loads
+        updateClock();
+
+        // Check for updates every 10 seconds (for testing, ensures responsiveness, but 60s is fine)
+        setInterval(updateClock, 10000); 
+
+    </script>
+</body>
+</html>
